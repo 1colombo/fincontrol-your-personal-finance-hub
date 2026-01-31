@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ProfileForm } from '@/components/settings/ProfileForm';
+import { ExportCSVDialog } from '@/components/settings/ExportCSVDialog';
+import { ImportCSVDialog } from '@/components/settings/ImportCSVDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +17,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { toast } from 'sonner';
 
 export default function Settings() {
   const { profiles, createProfile, updateProfile, deleteProfile } = useProfiles();
   const [formOpen, setFormOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [deleteProfileId, setDeleteProfileId] = useState<string | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const handleCreateProfile = async (data: { name: string; description?: string; color?: string }) => {
     await createProfile(data);
@@ -41,11 +44,11 @@ export default function Settings() {
   };
 
   const handleExportCSV = () => {
-    toast.info('Funcionalidade de exportação em desenvolvimento');
+    setExportOpen(true);
   };
 
   const handleImportCSV = () => {
-    toast.info('Funcionalidade de importação em desenvolvimento');
+    setImportOpen(true);
   };
 
   const handleOpenNew = () => {
@@ -191,6 +194,10 @@ export default function Settings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* CSV Dialogs */}
+      <ExportCSVDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <ImportCSVDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }
