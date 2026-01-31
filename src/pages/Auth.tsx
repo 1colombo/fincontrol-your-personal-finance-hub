@@ -8,51 +8,47 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres')
 });
-
 const registerSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
-  path: ['confirmPassword'],
+  path: ['confirmPassword']
 });
-
 type LoginData = z.infer<typeof loginSchema>;
 type RegisterData = z.infer<typeof registerSchema>;
-
 export default function Auth() {
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
+  const {
+    signIn,
+    signUp
+  } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   });
-
   const registerForm = useForm<RegisterData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: '', password: '', confirmPassword: '' },
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: ''
+    }
   });
-
   const handleLogin = async (data: LoginData) => {
     setIsLoading(true);
     try {
@@ -65,7 +61,6 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
-
   const handleRegister = async (data: RegisterData) => {
     setIsLoading(true);
     try {
@@ -78,16 +73,14 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-display font-bold text-2xl">F</span>
+            <span className="text-white font-display font-bold text-2xl">N</span>
           </div>
-          <h1 className="text-3xl font-display font-bold text-foreground">FinControl</h1>
+          <h1 className="text-3xl font-display font-bold text-foreground">Nexus</h1>
           <p className="text-muted-foreground mt-2">Gestão financeira inteligente</p>
         </div>
 
@@ -108,60 +101,34 @@ export default function Auth() {
               <TabsContent value="login">
                 <Form {...loginForm}>
                   <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={loginForm.control} name="email" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="seu@email.com" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={loginForm.control} name="password" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Senha</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="••••••••"
-                                {...field}
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-0 top-0 h-full"
-                                onClick={() => setShowPassword(!showPassword)}
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="h-4 w-4" />
-                                ) : (
-                                  <Eye className="h-4 w-4" />
-                                )}
+                              <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
+                              <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full" onClick={() => setShowPassword(!showPassword)}>
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
                             </div>
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? (
-                        <>
+                      {isLoading ? <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Entrando...
-                        </>
-                      ) : (
-                        'Entrar'
-                      )}
+                        </> : 'Entrar'}
                     </Button>
                   </form>
                 </Form>
@@ -170,77 +137,43 @@ export default function Auth() {
               <TabsContent value="register">
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
-                    <FormField
-                      control={registerForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
+                    <FormField control={registerForm.control} name="email" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="seu@email.com" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={registerForm.control} name="password" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Senha</FormLabel>
                           <FormControl>
                             <div className="relative">
-                              <Input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="••••••••"
-                                {...field}
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-0 top-0 h-full"
-                                onClick={() => setShowPassword(!showPassword)}
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="h-4 w-4" />
-                                ) : (
-                                  <Eye className="h-4 w-4" />
-                                )}
+                              <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
+                              <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full" onClick={() => setShowPassword(!showPassword)}>
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
                             </div>
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
+                        </FormItem>} />
+                    <FormField control={registerForm.control} name="confirmPassword" render={({
+                    field
+                  }) => <FormItem>
                           <FormLabel>Confirmar Senha</FormLabel>
                           <FormControl>
-                            <Input
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder="••••••••"
-                              {...field}
-                            />
+                            <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} />
                           </FormControl>
                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        </FormItem>} />
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? (
-                        <>
+                      {isLoading ? <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Criando conta...
-                        </>
-                      ) : (
-                        'Criar Conta'
-                      )}
+                        </> : 'Criar Conta'}
                     </Button>
                   </form>
                 </Form>
@@ -249,6 +182,5 @@ export default function Auth() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 }
