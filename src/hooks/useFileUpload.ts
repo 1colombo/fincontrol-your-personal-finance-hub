@@ -102,18 +102,24 @@ export function useFileUpload({ profileId, userId }: UseFileUploadProps) {
     updateFileStatus(localId, { status: 'processing' });
 
     try {
+      // Get the current session token for authenticated request
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Sessão expirada. Faça login novamente.');
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-bank-statement`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             fileId: dbFileId,
             profileId,
-            userId,
+            // userId is now derived from the JWT token server-side
           }),
         }
       );
