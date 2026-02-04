@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileSpreadsheet, AlertCircle, Check, Loader2 } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertCircle, Check, Loader2, AlertTriangle } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfiles } from '@/contexts/ProfileContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { parseCSV, csvToTransactions, TransactionCSV } from '@/lib/csv';
+import { parseCSV, validateTransactions, TransactionCSV, ValidationError, MAX_IMPORT_BATCH_SIZE } from '@/lib/csv';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/components/ui/alert';
 
 interface ImportCSVDialogProps {
   open: boolean;
@@ -38,6 +43,7 @@ type ImportStep = 'upload' | 'preview' | 'importing' | 'complete';
 export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
   const [step, setStep] = useState<ImportStep>('upload');
   const [parsedData, setParsedData] = useState<TransactionCSV[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [progress, setProgress] = useState(0);
   const [importedCount, setImportedCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +55,7 @@ export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
   const resetState = () => {
     setStep('upload');
     setParsedData([]);
+    setValidationErrors([]);
     setProgress(0);
     setImportedCount(0);
     setError(null);
@@ -64,6 +71,7 @@ export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
     if (!file) return;
 
     setError(null);
+    setValidationErrors([]);
     
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -75,6 +83,16 @@ export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
           setError('Nenhum dado válido encontrado no arquivo CSV');
           return;
         }
+
+        // Check batch size limit
+        if (parsed.length > MAX_IMPORT_BATCH_SIZE) {
+          setError(`O arquivo contém ${parsed.length} linhas. O máximo permitido é ${MAX_IMPORT_BATCH_SIZE} transações por importação.`);
+          return;
+        }
+        
+        // Validate and sanitize data
+        const validationResult = validateTransactions(parsed);
+        setValidationErrors(validationResult.errors);
         
         setParsedData(parsed);
         setStep('preview');
@@ -103,7 +121,14 @@ export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
         throw new Error('Selecione um perfil antes de importar');
       }
 
-      const transactions = csvToTransactions(parsedData);
+      // Use validated transactions instead of raw parsed data
+      const validationResult = validateTransactions(parsedData);
+      
+      if (!validationResult.valid) {
+        throw new Error(`Existem ${validationResult.errors.length} erro(s) de validação. Corrija-os antes de importar.`);
+      }
+      
+      const transactions = validationResult.validTransactions;
       
       if (transactions.length === 0) {
         throw new Error('Nenhuma transação válida para importar');
@@ -123,7 +148,7 @@ export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
 
         const { error } = await supabase.from('transactions').insert(batch);
         
-        if (error) throw error;
+        if (error) throw new Error('Erro ao salvar transações. Tente novamente.');
 
         imported += batch.length;
         setImportedCount(imported);
@@ -223,12 +248,35 @@ export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
                 </div>
               )}
 
+              {validationErrors.length > 0 && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Erros de validação encontrados</AlertTitle>
+                  <AlertDescription>
+                    <ScrollArea className="h-[100px] mt-2">
+                      <ul className="text-sm space-y-1">
+                        {validationErrors.slice(0, 10).map((err, idx) => (
+                          <li key={idx}>
+                            Linha {err.row}: {err.message} ({err.field})
+                          </li>
+                        ))}
+                        {validationErrors.length > 10 && (
+                          <li className="text-muted-foreground">
+                            ... e mais {validationErrors.length - 10} erros
+                          </li>
+                        )}
+                      </ul>
+                    </ScrollArea>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>Importando para:</span>
                 <Badge variant="secondary">{selectedProfile?.name || 'Nenhum perfil'}</Badge>
               </div>
 
-              <ScrollArea className="h-[350px] rounded-lg border">
+              <ScrollArea className="h-[300px] rounded-lg border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -311,12 +359,12 @@ export function ImportCSVDialog({ open, onOpenChange }: ImportCSVDialogProps) {
           
           {step === 'preview' && (
             <>
-              <Button variant="outline" onClick={() => setStep('upload')}>
+              <Button variant="outline" onClick={() => { setStep('upload'); setValidationErrors([]); }}>
                 Voltar
               </Button>
               <Button 
                 onClick={handleImport} 
-                disabled={!selectedProfile || parsedData.length === 0}
+                disabled={!selectedProfile || parsedData.length === 0 || validationErrors.length > 0}
               >
                 Importar {parsedData.length} transações
               </Button>

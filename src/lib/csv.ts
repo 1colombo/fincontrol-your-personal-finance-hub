@@ -1,4 +1,5 @@
 // CSV utility functions for export and import
+import { z } from 'zod';
 
 export interface TransactionCSV {
   descricao: string;
@@ -9,6 +10,61 @@ export interface TransactionCSV {
   data: string;
   observacao: string;
 }
+
+// Validation constants
+const MAX_AMOUNT = 999999999.99;
+const MIN_AMOUNT = 0.01;
+const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_NOTES_LENGTH = 1000;
+const MAX_PAYMENT_SOURCE_LENGTH = 100;
+
+// Zod schema for transaction validation
+const transactionSchema = z.object({
+  description: z.string()
+    .trim()
+    .min(1, 'Descrição é obrigatória')
+    .max(MAX_DESCRIPTION_LENGTH, `Descrição deve ter no máximo ${MAX_DESCRIPTION_LENGTH} caracteres`)
+    .transform(sanitizeText),
+  amount: z.number()
+    .min(MIN_AMOUNT, `Valor mínimo é R$ ${MIN_AMOUNT.toFixed(2)}`)
+    .max(MAX_AMOUNT, `Valor máximo é R$ ${MAX_AMOUNT.toLocaleString('pt-BR')}`),
+  type: z.enum(['income', 'expense']),
+  payment_method: z.enum(['pix', 'boleto', 'credito', 'debito', 'dinheiro', 'transferencia']),
+  payment_source: z.string()
+    .max(MAX_PAYMENT_SOURCE_LENGTH, `Fonte deve ter no máximo ${MAX_PAYMENT_SOURCE_LENGTH} caracteres`)
+    .transform(sanitizeText)
+    .nullable(),
+  transaction_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+  notes: z.string()
+    .max(MAX_NOTES_LENGTH, `Observação deve ter no máximo ${MAX_NOTES_LENGTH} caracteres`)
+    .transform(sanitizeText)
+    .nullable(),
+});
+
+// Sanitize text to prevent injection attacks
+function sanitizeText(text: string): string {
+  if (!text) return text;
+  
+  // Remove potentially dangerous characters while preserving common Brazilian text
+  return text
+    .replace(/[<>]/g, '') // Remove HTML brackets
+    .replace(/javascript:/gi, '') // Remove javascript protocol
+    .replace(/on\w+=/gi, '') // Remove event handlers
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .trim();
+}
+
+export type ValidationError = {
+  row: number;
+  field: string;
+  message: string;
+};
+
+export type ValidationResult = {
+  valid: boolean;
+  errors: ValidationError[];
+  validTransactions: TransactionData[];
+};
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   pix: 'PIX',
@@ -205,6 +261,66 @@ export function csvToTransactions(csvRows: TransactionCSV[]): Omit<TransactionDa
     };
   }).filter(t => t.description && t.amount > 0);
 }
+
+// Validate and sanitize transactions before database insertion
+export function validateTransactions(csvRows: TransactionCSV[]): ValidationResult {
+  const errors: ValidationError[] = [];
+  const validTransactions: TransactionData[] = [];
+  
+  csvRows.forEach((row, index) => {
+    const rowNumber = index + 1; // 1-indexed for user display
+    const normalizedType = row.tipo.toLowerCase().trim();
+    const normalizedMethod = row.forma_pagamento.toLowerCase().trim();
+    
+    const rawTransaction = {
+      description: sanitizeText(row.descricao.trim()),
+      amount: parseCurrency(row.valor),
+      type: (TYPE_REVERSE[normalizedType] || 'expense') as 'income' | 'expense',
+      payment_method: (PAYMENT_METHOD_REVERSE[normalizedMethod] || 'pix') as TransactionData['payment_method'],
+      payment_source: row.fonte_pagamento.trim() ? sanitizeText(row.fonte_pagamento.trim()) : null,
+      transaction_date: parseDate(row.data),
+      notes: row.observacao.trim() ? sanitizeText(row.observacao.trim()) : null,
+    };
+    
+    // Validate the transaction
+    const result = transactionSchema.safeParse(rawTransaction);
+    
+    if (!result.success) {
+      result.error.errors.forEach(err => {
+        errors.push({
+          row: rowNumber,
+          field: err.path.join('.'),
+          message: err.message,
+        });
+      });
+    } else {
+      // Additional validation: check for reasonable date range
+      const transactionDate = new Date(rawTransaction.transaction_date);
+      const now = new Date();
+      const minDate = new Date('1990-01-01');
+      const maxDate = new Date(now.getFullYear() + 1, 11, 31); // Allow up to end of next year
+      
+      if (transactionDate < minDate || transactionDate > maxDate) {
+        errors.push({
+          row: rowNumber,
+          field: 'transaction_date',
+          message: `Data fora do intervalo permitido (${minDate.getFullYear()}-${maxDate.getFullYear()})`,
+        });
+      } else {
+        validTransactions.push(result.data as TransactionData);
+      }
+    }
+  });
+  
+  return {
+    valid: errors.length === 0,
+    errors,
+    validTransactions,
+  };
+}
+
+// Export MAX_BATCH_SIZE for use in import dialog
+export const MAX_IMPORT_BATCH_SIZE = 500;
 
 export function downloadCSV(content: string, filename: string): void {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
