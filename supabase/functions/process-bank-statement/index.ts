@@ -16,37 +16,87 @@ interface ExtractedTransaction {
   notes: string | null;
 }
 
+// Generic error messages for client responses
+const ERROR_MESSAGES = {
+  UNAUTHORIZED: "Acesso não autorizado",
+  FORBIDDEN: "Você não tem permissão para acessar este recurso",
+  NOT_FOUND: "Arquivo não encontrado",
+  PROCESSING_FAILED: "Falha ao processar o arquivo",
+  RATE_LIMITED: "Limite de requisições excedido. Tente novamente mais tarde.",
+  INSUFFICIENT_CREDITS: "Créditos de IA insuficientes",
+  INVALID_REQUEST: "Requisição inválida",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // ===== AUTHENTICATION: Validate JWT token =====
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("Missing or invalid authorization header");
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.UNAUTHORIZED }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { fileId, profileId, userId } = await req.json();
+    // Create client with user's JWT to validate authentication
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
 
-    if (!fileId || !profileId || !userId) {
+    // Validate the JWT and get user claims
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    
+    if (claimsError || !claimsData?.claims) {
+      console.error("JWT validation failed:", claimsError?.message);
       return new Response(
-        JSON.stringify({ error: "Missing required parameters: fileId, profileId, userId" }),
+        JSON.stringify({ error: ERROR_MESSAGES.UNAUTHORIZED }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const authenticatedUserId = claimsData.claims.sub;
+    if (!authenticatedUserId) {
+      console.error("No user ID in JWT claims");
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.UNAUTHORIZED }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ===== REQUEST VALIDATION =====
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { fileId, profileId } = await req.json();
+
+    if (!fileId || !profileId) {
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.INVALID_REQUEST }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Update file status to processing
-    await supabase
-      .from("uploaded_files")
-      .update({ status: "processing" })
-      .eq("id", fileId);
+    // Use service role client for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get file info from database
+    // ===== AUTHORIZATION: Verify resource ownership =====
+    // Check that the file belongs to the authenticated user
     const { data: fileRecord, error: fileError } = await supabase
       .from("uploaded_files")
       .select("*")
@@ -54,8 +104,53 @@ serve(async (req) => {
       .single();
 
     if (fileError || !fileRecord) {
-      throw new Error("File not found in database");
+      console.error("File not found:", fileId);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.NOT_FOUND }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    // Verify the authenticated user owns this file
+    if (fileRecord.user_id !== authenticatedUserId) {
+      console.error("User", authenticatedUserId, "attempted to access file owned by", fileRecord.user_id);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.FORBIDDEN }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the profile belongs to the authenticated user
+    const { data: profileRecord, error: profileError } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("id", profileId)
+      .single();
+
+    if (profileError || !profileRecord) {
+      console.error("Profile not found:", profileId);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.NOT_FOUND }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (profileRecord.user_id !== authenticatedUserId) {
+      console.error("User", authenticatedUserId, "attempted to use profile owned by", profileRecord.user_id);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.FORBIDDEN }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Use the authenticated user's ID instead of trusting client-provided userId
+    const userId = authenticatedUserId;
+
+    // Update file status to processing
+    await supabase
+      .from("uploaded_files")
+      .update({ status: "processing" })
+      .eq("id", fileId);
 
     // Download file from storage
     const { data: fileData, error: downloadError } = await supabase.storage
@@ -63,7 +158,15 @@ serve(async (req) => {
       .download(fileRecord.storage_path);
 
     if (downloadError || !fileData) {
-      throw new Error(`Failed to download file: ${downloadError?.message}`);
+      console.error("Failed to download file:", downloadError?.message);
+      await supabase
+        .from("uploaded_files")
+        .update({ status: "failed", error_message: ERROR_MESSAGES.PROCESSING_FAILED })
+        .eq("id", fileId);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Convert file to base64 for AI processing
@@ -149,10 +252,10 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
       if (aiResponse.status === 429) {
         await supabase
           .from("uploaded_files")
-          .update({ status: "failed", error_message: "Limite de requisições excedido. Tente novamente mais tarde." })
+          .update({ status: "failed", error_message: ERROR_MESSAGES.RATE_LIMITED })
           .eq("id", fileId);
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+          JSON.stringify({ error: ERROR_MESSAGES.RATE_LIMITED }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -160,22 +263,38 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
       if (aiResponse.status === 402) {
         await supabase
           .from("uploaded_files")
-          .update({ status: "failed", error_message: "Créditos de IA insuficientes." })
+          .update({ status: "failed", error_message: ERROR_MESSAGES.INSUFFICIENT_CREDITS })
           .eq("id", fileId);
         return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to your workspace." }),
+          JSON.stringify({ error: ERROR_MESSAGES.INSUFFICIENT_CREDITS }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
+      console.error("AI Gateway error details:", aiResponse.status);
+      await supabase
+        .from("uploaded_files")
+        .update({ status: "failed", error_message: ERROR_MESSAGES.PROCESSING_FAILED })
+        .eq("id", fileId);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiData = await aiResponse.json();
     const aiContent = aiData.choices?.[0]?.message?.content;
 
     if (!aiContent) {
-      throw new Error("No content returned from AI");
+      console.error("No content returned from AI");
+      await supabase
+        .from("uploaded_files")
+        .update({ status: "failed", error_message: ERROR_MESSAGES.PROCESSING_FAILED })
+        .eq("id", fileId);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Parse the JSON response from AI
@@ -194,14 +313,29 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
       extractedData = JSON.parse(cleanedContent.trim());
     } catch (parseError) {
       console.error("Failed to parse AI response:", aiContent);
-      throw new Error("Failed to parse AI response as JSON");
+      await supabase
+        .from("uploaded_files")
+        .update({ status: "failed", error_message: ERROR_MESSAGES.PROCESSING_FAILED })
+        .eq("id", fileId);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     if (!extractedData.transactions || !Array.isArray(extractedData.transactions)) {
-      throw new Error("Invalid response structure from AI");
+      console.error("Invalid response structure from AI");
+      await supabase
+        .from("uploaded_files")
+        .update({ status: "failed", error_message: ERROR_MESSAGES.PROCESSING_FAILED })
+        .eq("id", fileId);
+      return new Response(
+        JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Insert transactions into database
+    // Insert transactions into database using the authenticated user's ID
     const transactionsToInsert = extractedData.transactions.map((t) => ({
       description: t.description,
       amount: Math.abs(t.amount),
@@ -211,7 +345,7 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
       transaction_date: t.transaction_date,
       notes: t.notes,
       profile_id: profileId,
-      user_id: userId,
+      user_id: userId, // Always use authenticated user's ID
     }));
 
     if (transactionsToInsert.length > 0) {
@@ -221,7 +355,14 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
 
       if (insertError) {
         console.error("Insert error:", insertError);
-        throw new Error(`Failed to insert transactions: ${insertError.message}`);
+        await supabase
+          .from("uploaded_files")
+          .update({ status: "failed", error_message: ERROR_MESSAGES.PROCESSING_FAILED })
+          .eq("id", fileId);
+        return new Response(
+          JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
 
@@ -239,15 +380,12 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
       JSON.stringify({ 
         success: true, 
         transactionsCount: transactionsToInsert.length,
-        transactions: transactionsToInsert
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
     console.error("Processing error:", error);
-    
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     
     // Try to update file status to failed
     try {
@@ -258,7 +396,7 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
         await supabase
           .from("uploaded_files")
-          .update({ status: "failed", error_message: errorMessage })
+          .update({ status: "failed", error_message: ERROR_MESSAGES.PROCESSING_FAILED })
           .eq("id", fileId);
       }
     } catch (e) {
@@ -266,7 +404,7 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
     }
 
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
