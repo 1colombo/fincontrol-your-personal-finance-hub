@@ -26,10 +26,10 @@ export function KPICard({ title, value, icon, type, trend }: KPICardProps) {
       : <Minus className="h-4 w-4" />;
 
   return (
-    <div className="kpi-card animate-fade-in">
+    <div className="kpi-card group">
       <div className="flex items-start justify-between mb-4">
         <div className={cn(
-          'w-12 h-12 rounded-xl flex items-center justify-center',
+          'w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105',
           type === 'income' && 'bg-income-muted text-income',
           type === 'expense' && 'bg-expense-muted text-expense',
           type === 'balance' && (isPositive ? 'bg-income-muted text-income' : 'bg-expense-muted text-expense')
@@ -38,7 +38,7 @@ export function KPICard({ title, value, icon, type, trend }: KPICardProps) {
         </div>
         {trend !== undefined && (
           <div className={cn(
-            'flex items-center gap-1 text-sm font-medium px-2 py-1 rounded-full',
+            'flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-full transition-all duration-200',
             trend > 0 ? 'bg-income-muted text-income' : trend < 0 ? 'bg-expense-muted text-expense' : 'bg-muted text-muted-foreground'
           )}>
             {trendIcon}
@@ -47,9 +47,9 @@ export function KPICard({ title, value, icon, type, trend }: KPICardProps) {
         )}
       </div>
       
-      <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
+      <p className="text-sm font-medium text-muted-foreground mb-1.5">{title}</p>
       <p className={cn(
-        'text-2xl lg:text-3xl font-display font-bold tracking-tight',
+        'text-2xl lg:text-3xl font-display font-bold tracking-tight transition-colors duration-200',
         type === 'income' && 'text-income',
         type === 'expense' && 'text-expense',
         type === 'balance' && (isPositive ? 'text-income' : 'text-expense')

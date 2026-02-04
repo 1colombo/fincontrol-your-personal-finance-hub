@@ -62,10 +62,10 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-4xl">
+    <div className="space-y-6 max-w-4xl">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+      <div className="animate-fade-in">
+        <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground tracking-tight">
           Configurações
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -74,7 +74,7 @@ export default function Settings() {
       </div>
 
       {/* CSV Management */}
-      <Card className="card-finance">
+      <Card className="card-finance animate-slide-up" style={{ animationDelay: '50ms' }}>
         <CardHeader>
           <CardTitle className="font-display">Importação e Exportação</CardTitle>
           <CardDescription>
@@ -83,11 +83,11 @@ export default function Settings() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" onClick={handleExportCSV} className="gap-2">
+            <Button variant="outline" onClick={handleExportCSV} className="gap-2 press-effect">
               <Download className="h-4 w-4" />
               Exportar Relatório (CSV)
             </Button>
-            <Button variant="outline" onClick={handleImportCSV} className="gap-2">
+            <Button variant="outline" onClick={handleImportCSV} className="gap-2 press-effect">
               <Upload className="h-4 w-4" />
               Importar Planilha
             </Button>
@@ -98,7 +98,7 @@ export default function Settings() {
       <Separator />
 
       {/* Profile Management */}
-      <Card className="card-finance">
+      <Card className="card-finance animate-slide-up" style={{ animationDelay: '100ms' }}>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="font-display">Perfis Financeiros</CardTitle>
@@ -106,7 +106,7 @@ export default function Settings() {
               Gerencie os perfis de pessoas ou clientes cujas finanças você administra
             </CardDescription>
           </div>
-          <Button onClick={handleOpenNew} className="gap-2">
+          <Button onClick={handleOpenNew} className="gap-2 press-effect">
             <Plus className="h-4 w-4" />
             Novo Perfil
           </Button>
@@ -119,15 +119,15 @@ export default function Settings() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 stagger-children">
               {profiles.map((profile) => (
                 <div
                   key={profile.id}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/30 transition-all duration-200 hover-lift"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold shadow-sm transition-transform duration-200"
                       style={{ backgroundColor: profile.color }}
                     >
                       {profile.name.charAt(0).toUpperCase()}
@@ -146,13 +146,14 @@ export default function Settings() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(profile)}
+                      className="transition-colors duration-200"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive transition-colors duration-200"
                       onClick={() => setDeleteProfileId(profile.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -175,7 +176,7 @@ export default function Settings() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteProfileId} onOpenChange={() => setDeleteProfileId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="animate-scale-in">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir perfil</AlertDialogTitle>
             <AlertDialogDescription>

@@ -155,7 +155,7 @@ export default function Transactions() {
 
   if (!selectedProfile) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center animate-fade-in">
         <h2 className="text-2xl font-display font-bold text-foreground mb-2">
           Nenhum perfil selecionado
         </h2>
@@ -167,11 +167,11 @@ export default function Transactions() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+          <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground tracking-tight">
             Lançamentos
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -185,7 +185,7 @@ export default function Transactions() {
             onMonthChange={setSelectedMonth}
             onYearChange={setSelectedYear}
           />
-          <Button onClick={handleOpenNew} className="gap-2">
+          <Button onClick={handleOpenNew} className="gap-2 press-effect">
             <Plus className="h-4 w-4" />
             Nova Transação
           </Button>
@@ -193,36 +193,38 @@ export default function Transactions() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'income' | 'expense')}>
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="expense" className="gap-2">
-            <TrendingDown className="h-4 w-4" />
-            Despesas
-          </TabsTrigger>
-          <TabsTrigger value="income" className="gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Receitas
-          </TabsTrigger>
-        </TabsList>
+      <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'income' | 'expense')}>
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="expense" className="gap-2 transition-all duration-200">
+              <TrendingDown className="h-4 w-4" />
+              Despesas
+            </TabsTrigger>
+            <TabsTrigger value="income" className="gap-2 transition-all duration-200">
+              <TrendingUp className="h-4 w-4" />
+              Receitas
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="expense" className="mt-6">
-          <TransactionsTable
-            transactions={transactions}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            onDelete={(id) => deleteMutation.mutate(id)}
-          />
-        </TabsContent>
+          <TabsContent value="expense" className="mt-6 animate-fade-in">
+            <TransactionsTable
+              transactions={transactions}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onDelete={(id) => deleteMutation.mutate(id)}
+            />
+          </TabsContent>
 
-        <TabsContent value="income" className="mt-6">
-          <TransactionsTable
-            transactions={transactions}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            onDelete={(id) => deleteMutation.mutate(id)}
-          />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="income" className="mt-6 animate-fade-in">
+            <TransactionsTable
+              transactions={transactions}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onDelete={(id) => deleteMutation.mutate(id)}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Dialog */}
       <TransactionDialog
