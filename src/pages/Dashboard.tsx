@@ -6,7 +6,6 @@ import { useProfiles } from '@/contexts/ProfileContext';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { FinancialChart } from '@/components/dashboard/FinancialChart';
 import { MonthYearPicker } from '@/components/dashboard/MonthYearPicker';
-import { MainLayout } from '@/components/layout/MainLayout';
 
 const months = [
   'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
@@ -97,8 +96,8 @@ export default function Dashboard() {
 
   if (!selectedProfile) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center animate-fade-in">
+        <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mb-4">
           <Wallet className="h-10 w-10 text-muted-foreground" />
         </div>
         <h2 className="text-2xl font-display font-bold text-foreground mb-2">
@@ -112,11 +111,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+          <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground tracking-tight">
             Dashboard
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -132,7 +131,7 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 stagger-children">
         <KPICard
           title="Total Receitas"
           value={income}
@@ -154,7 +153,9 @@ export default function Dashboard() {
       </div>
 
       {/* Chart */}
-      <FinancialChart data={chartData} />
+      <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <FinancialChart data={chartData} />
+      </div>
     </div>
   );
 }

@@ -4,152 +4,154 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FinControl Design System - Professional Finance ERP Theme */
+/* Nexus Finance - Minimalist Royal Blue Design System */
 
 @layer base {
   :root {
-    /* Base colors - Clean professional palette */
-    --background: 210 20% 98%;
-    --foreground: 220 25% 10%;
+    /* Base colors - Clean minimalist palette */
+    --background: 220 20% 98%;
+    --foreground: 225 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 225 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 225 30% 12%;
 
-    /* Primary - Deep Teal Blue (Trust & Professionalism) */
-    --primary: 200 80% 35%;
+    /* Primary - Royal Blue Profundo */
+    --primary: 230 60% 30%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft Cool Gray */
-    --secondary: 210 15% 93%;
-    --secondary-foreground: 220 25% 20%;
+    /* Secondary - Soft Blue Gray */
+    --secondary: 225 20% 94%;
+    --secondary-foreground: 225 30% 20%;
 
-    /* Muted - Light Gray for subtle elements */
-    --muted: 210 15% 96%;
-    --muted-foreground: 215 15% 45%;
+    /* Muted - Subtle Gray */
+    --muted: 225 15% 96%;
+    --muted-foreground: 225 12% 50%;
 
-    /* Accent - Soft Teal */
-    --accent: 200 60% 94%;
-    --accent-foreground: 200 80% 30%;
+    /* Accent - Light Royal Blue */
+    --accent: 230 50% 95%;
+    --accent-foreground: 230 60% 28%;
 
     /* Finance-specific semantic colors */
-    --income: 152 60% 42%;
+    --income: 160 55% 40%;
     --income-foreground: 0 0% 100%;
-    --income-muted: 152 45% 92%;
+    --income-muted: 160 40% 94%;
     
-    --expense: 0 72% 51%;
+    --expense: 0 65% 50%;
     --expense-foreground: 0 0% 100%;
-    --expense-muted: 0 60% 95%;
+    --expense-muted: 0 50% 96%;
 
-    --warning: 38 92% 50%;
+    --warning: 40 90% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
-    --ring: 200 80% 35%;
+    --border: 225 20% 90%;
+    --input: 225 20% 90%;
+    --ring: 230 60% 30%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    /* Sidebar - Elegant dark sidebar */
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 200 80% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 200 80% 50%;
-    --sidebar-muted: 220 15% 30%;
+    /* Sidebar - Royal Blue Gradient Theme */
+    --sidebar-background: 230 60% 26%;
+    --sidebar-foreground: 225 30% 95%;
+    --sidebar-primary: 225 80% 75%;
+    --sidebar-primary-foreground: 230 60% 15%;
+    --sidebar-accent: 230 50% 32%;
+    --sidebar-accent-foreground: 225 30% 98%;
+    --sidebar-border: 230 45% 35%;
+    --sidebar-ring: 225 80% 75%;
+    --sidebar-muted: 225 30% 65%;
 
     /* Chart colors */
-    --chart-income: 152 60% 42%;
-    --chart-expense: 0 72% 51%;
-    --chart-1: 200 80% 35%;
-    --chart-2: 152 60% 42%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 280 60% 50%;
-    --chart-5: 340 75% 55%;
+    --chart-income: 160 55% 40%;
+    --chart-expense: 0 65% 50%;
+    --chart-1: 230 60% 30%;
+    --chart-2: 160 55% 40%;
+    --chart-3: 40 90% 50%;
+    --chart-4: 280 50% 50%;
+    --chart-5: 340 60% 55%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(200, 80%, 35%), hsl(200, 80%, 25%));
-    --gradient-income: linear-gradient(135deg, hsl(152, 60%, 42%), hsl(152, 60%, 35%));
-    --gradient-expense: linear-gradient(135deg, hsl(0, 72%, 51%), hsl(0, 72%, 44%));
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(210, 20%, 98%));
+    --gradient-primary: linear-gradient(135deg, hsl(230, 60%, 30%), hsl(230, 65%, 22%));
+    --gradient-sidebar: linear-gradient(180deg, hsl(230, 60%, 28%), hsl(230, 65%, 20%));
+    --gradient-income: linear-gradient(135deg, hsl(160, 55%, 40%), hsl(160, 55%, 32%));
+    --gradient-expense: linear-gradient(135deg, hsl(0, 65%, 50%), hsl(0, 65%, 42%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(220, 20%, 98%));
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220, 25%, 10%, 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220, 25%, 10%, 0.07), 0 2px 4px -2px hsl(220, 25%, 10%, 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(220, 25%, 10%, 0.08), 0 4px 6px -4px hsl(220, 25%, 10%, 0.05);
-    --shadow-card: 0 0 0 1px hsl(214, 20%, 90%), 0 1px 3px 0 hsl(220, 25%, 10%, 0.05);
+    /* Shadows - Softer, more minimal */
+    --shadow-sm: 0 1px 2px 0 hsl(230, 30%, 10%, 0.03);
+    --shadow-md: 0 4px 12px -2px hsl(230, 30%, 10%, 0.06);
+    --shadow-lg: 0 12px 24px -4px hsl(230, 30%, 10%, 0.08);
+    --shadow-card: 0 0 0 1px hsl(225, 20%, 92%), 0 2px 8px -2px hsl(230, 30%, 10%, 0.04);
   }
 
   .dark {
-    --background: 222 30% 8%;
-    --foreground: 210 20% 95%;
+    --background: 225 30% 6%;
+    --foreground: 225 20% 95%;
 
-    --card: 222 25% 12%;
-    --card-foreground: 210 20% 95%;
+    --card: 225 25% 10%;
+    --card-foreground: 225 20% 95%;
 
-    --popover: 222 25% 12%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 225 25% 10%;
+    --popover-foreground: 225 20% 95%;
 
-    --primary: 200 70% 50%;
-    --primary-foreground: 220 25% 5%;
+    --primary: 225 70% 60%;
+    --primary-foreground: 225 30% 5%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 210 20% 90%;
+    --secondary: 225 20% 16%;
+    --secondary-foreground: 225 20% 90%;
 
-    --muted: 220 20% 16%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 225 20% 14%;
+    --muted-foreground: 225 15% 55%;
 
-    --accent: 200 50% 20%;
-    --accent-foreground: 200 70% 70%;
+    --accent: 230 40% 18%;
+    --accent-foreground: 225 70% 70%;
 
-    --income: 152 55% 50%;
-    --income-foreground: 220 25% 5%;
-    --income-muted: 152 30% 15%;
+    --income: 160 50% 50%;
+    --income-foreground: 225 30% 5%;
+    --income-muted: 160 30% 14%;
     
-    --expense: 0 65% 55%;
-    --expense-foreground: 220 25% 5%;
-    --expense-muted: 0 40% 15%;
+    --expense: 0 60% 55%;
+    --expense-foreground: 225 30% 5%;
+    --expense-muted: 0 35% 14%;
 
-    --warning: 38 85% 55%;
-    --warning-foreground: 220 25% 5%;
+    --warning: 40 80% 55%;
+    --warning-foreground: 225 30% 5%;
 
-    --destructive: 0 65% 55%;
-    --destructive-foreground: 210 20% 95%;
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 225 20% 95%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 200 70% 50%;
+    --border: 225 20% 18%;
+    --input: 225 20% 18%;
+    --ring: 225 70% 60%;
 
-    --sidebar-background: 222 30% 6%;
-    --sidebar-foreground: 210 20% 80%;
-    --sidebar-primary: 200 70% 55%;
-    --sidebar-primary-foreground: 220 25% 5%;
-    --sidebar-accent: 220 25% 14%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 20% 14%;
-    --sidebar-ring: 200 70% 55%;
-    --sidebar-muted: 220 15% 25%;
+    --sidebar-background: 230 35% 8%;
+    --sidebar-foreground: 225 20% 85%;
+    --sidebar-primary: 225 70% 65%;
+    --sidebar-primary-foreground: 225 30% 5%;
+    --sidebar-accent: 230 30% 14%;
+    --sidebar-accent-foreground: 225 20% 92%;
+    --sidebar-border: 225 20% 14%;
+    --sidebar-ring: 225 70% 65%;
+    --sidebar-muted: 225 15% 40%;
 
-    --chart-income: 152 55% 50%;
-    --chart-expense: 0 65% 55%;
+    --chart-income: 160 50% 50%;
+    --chart-expense: 0 60% 55%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(200, 70%, 50%), hsl(200, 70%, 40%));
-    --gradient-income: linear-gradient(135deg, hsl(152, 55%, 50%), hsl(152, 55%, 40%));
-    --gradient-expense: linear-gradient(135deg, hsl(0, 65%, 55%), hsl(0, 65%, 45%));
-    --gradient-card: linear-gradient(180deg, hsl(222, 25%, 12%), hsl(222, 30%, 10%));
+    --gradient-primary: linear-gradient(135deg, hsl(225, 70%, 60%), hsl(225, 70%, 50%));
+    --gradient-sidebar: linear-gradient(180deg, hsl(230, 35%, 10%), hsl(230, 40%, 6%));
+    --gradient-income: linear-gradient(135deg, hsl(160, 50%, 50%), hsl(160, 50%, 40%));
+    --gradient-expense: linear-gradient(135deg, hsl(0, 60%, 55%), hsl(0, 60%, 45%));
+    --gradient-card: linear-gradient(180deg, hsl(225, 25%, 10%), hsl(225, 30%, 8%));
 
-    --shadow-sm: 0 1px 2px 0 hsl(0, 0%, 0%, 0.3);
-    --shadow-md: 0 4px 6px -1px hsl(0, 0%, 0%, 0.3), 0 2px 4px -2px hsl(0, 0%, 0%, 0.2);
-    --shadow-lg: 0 10px 15px -3px hsl(0, 0%, 0%, 0.35), 0 4px 6px -4px hsl(0, 0%, 0%, 0.2);
-    --shadow-card: 0 0 0 1px hsl(220, 20%, 20%), 0 1px 3px 0 hsl(0, 0%, 0%, 0.2);
+    --shadow-sm: 0 1px 2px 0 hsl(0, 0%, 0%, 0.2);
+    --shadow-md: 0 4px 12px -2px hsl(0, 0%, 0%, 0.25);
+    --shadow-lg: 0 12px 24px -4px hsl(0, 0%, 0%, 0.3);
+    --shadow-card: 0 0 0 1px hsl(225, 20%, 18%), 0 2px 8px -2px hsl(0, 0%, 0%, 0.2);
   }
 }
 
@@ -171,21 +173,22 @@
 
 @layer components {
   .card-finance {
-    @apply bg-card rounded-xl border shadow-sm transition-all duration-200;
+    @apply bg-card rounded-xl border transition-all duration-300 ease-out;
     box-shadow: var(--shadow-card);
   }
 
   .card-finance:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
 
   .kpi-card {
-    @apply bg-card rounded-xl p-6 border transition-all duration-300;
+    @apply bg-card rounded-xl p-6 border transition-all duration-300 ease-out;
     box-shadow: var(--shadow-card);
   }
 
   .kpi-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
   }
 
@@ -208,30 +211,87 @@
   .gradient-primary {
     background: var(--gradient-primary);
   }
+
+  .gradient-sidebar {
+    background: var(--gradient-sidebar);
+  }
+
+  /* Coin Logo Component */
+  .logo-coin {
+    @apply relative flex items-center justify-center rounded-xl;
+    background: var(--gradient-primary);
+  }
+
+  .logo-coin::before {
+    content: '';
+    @apply absolute inset-1 rounded-lg border-2 border-white/20;
+  }
+
+  .logo-coin-inner {
+    @apply text-white font-display font-bold;
+  }
 }
 
 @layer utilities {
+  /* Subtle fade in */
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.4s ease-out;
   }
 
+  /* Gentle slide up */
   .animate-slide-up {
-    animation: slideUp 0.4s ease-out;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* Soft scale in */
   .animate-scale-in {
-    animation: scaleIn 0.2s ease-out;
+    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Stagger children animation */
+  .stagger-children > * {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
+  /* Hover lift effect */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Smooth button press */
+  .press-effect {
+    @apply transition-transform duration-150;
+  }
+
+  .press-effect:active {
+    transform: scale(0.98);
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { 
+      opacity: 0; 
+    }
+    to { 
+      opacity: 1; 
+    }
   }
 
   @keyframes slideUp {
     from { 
       opacity: 0; 
-      transform: translateY(10px); 
+      transform: translateY(12px); 
     }
     to { 
       opacity: 1; 
@@ -242,11 +302,25 @@
   @keyframes scaleIn {
     from { 
       opacity: 0; 
-      transform: scale(0.95); 
+      transform: scale(0.96); 
     }
     to { 
       opacity: 1; 
       transform: scale(1); 
     }
+  }
+
+  /* Subtle pulse for loading states */
+  @keyframes subtlePulse {
+    0%, 100% { 
+      opacity: 1; 
+    }
+    50% { 
+      opacity: 0.7; 
+    }
+  }
+
+  .animate-subtle-pulse {
+    animation: subtlePulse 2s ease-in-out infinite;
   }
 }

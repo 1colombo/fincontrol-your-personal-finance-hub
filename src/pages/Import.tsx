@@ -219,7 +219,7 @@ export default function Import() {
 
   if (!selectedProfile) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center animate-fade-in">
         <h2 className="text-2xl font-display font-bold text-foreground mb-2">
           Nenhum perfil selecionado
         </h2>
@@ -231,10 +231,10 @@ export default function Import() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+      <div className="animate-fade-in">
+        <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground tracking-tight">
           Importação Inteligente
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -244,7 +244,7 @@ export default function Import() {
 
       {/* Success Stats */}
       {completedCount > 0 && (
-        <Alert className="border-income/30 bg-income/5">
+        <Alert className="border-income/30 bg-income/5 animate-slide-up">
           <CheckCircle className="h-4 w-4 text-income" />
           <AlertDescription className="text-income">
             {completedCount} arquivo(s) processado(s) com sucesso! 
@@ -254,7 +254,7 @@ export default function Import() {
       )}
 
       {/* Info Alert */}
-      <Alert>
+      <Alert className="animate-slide-up" style={{ animationDelay: '50ms' }}>
         <Sparkles className="h-4 w-4" />
         <AlertDescription>
           Nossa IA analisa extratos bancários em PDF e fotos de recibos, 
@@ -263,7 +263,7 @@ export default function Import() {
       </Alert>
 
       {/* Upload Card */}
-      <Card className="card-finance">
+      <Card className="card-finance animate-slide-up" style={{ animationDelay: '100ms' }}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-display">
             <FileText className="h-5 w-5" />
@@ -286,10 +286,10 @@ export default function Import() {
       </Card>
 
       {/* Processing Info */}
-      <Card className="card-finance border-dashed">
+      <Card className="card-finance border-dashed animate-slide-up" style={{ animationDelay: '150ms' }}>
         <CardContent className="pt-6">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
               <AlertCircle className="h-5 w-5 text-primary" />
             </div>
             <div>
