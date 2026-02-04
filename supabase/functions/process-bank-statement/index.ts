@@ -74,9 +74,9 @@ serve(async (req) => {
     }
 
     // ===== REQUEST VALIDATION =====
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) {
+      console.error("GOOGLE_API_KEY is not configured");
       return new Response(
         JSON.stringify({ error: ERROR_MESSAGES.PROCESSING_FAILED }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -226,23 +226,23 @@ IMPORTANTE: Retorne APENAS um JSON válido com a estrutura abaixo, sem texto adi
       });
     }
 
-    // Call Lovable AI Gateway with multimodal content
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Call GOOGLE API 2.5 Flash model for multimodal processing
+    const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GOOGLE_API_KEY}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: messageContent
-          }
-        ],
-        max_tokens: 4096,
-      }),
+        contents: [{
+          parts: [
+            { text: messageContent },
+            {
+              inline_data: {
+                mime_type: fileRecord.file_type,
+                data: base64Content
+              }
+            }
+          ]
+        }]
+      })
     });
 
     if (!aiResponse.ok) {
